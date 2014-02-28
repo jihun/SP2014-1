@@ -9,7 +9,7 @@
     <meta name="author" content="">
     <link rel="shortcu  t icon" href="../../assets/ico/favicon.ico">
 
-    <title>Theme Template for Bootstrap</title>
+    <title>Software Project 2014-1</title>
 
     <!-- Bootstrap core CSS -->
     <link href="../../dist/css/bootstrap.min.css" rel="stylesheet">
@@ -175,28 +175,51 @@
                 res = JSON.parse(xmlHttp.responseText);
                 idx = 0;
                 console.log(res);
-
+                 
                 if(res["result"] == "NO")
                 {
                     alert('Input String is not accepted to Language!');
                 }
                 else
                 {
-                    SetTableValues();
+                    ClearTableRow();
+                    AddTableRow(idx);
+                    SetTableValues(idx);
                 }
             }                    
         }
     }
-
-    function SetTableValues()
+      
+    function ClearTableRow()
     {
         var table = document.getElementById('res-table');
-        table.rows[1].cells[1].innerHTML = "State " + res.csvRows[idx]["stateNum"];
-        table.rows[1].cells[2].innerHTML = highlightStr(res.csvRows[idx]["str"], res.csvRows[idx]["invNum"], "blue");
+        for(var i = table.rows.length - 1; i >= 1; i--)
+        {
+          table.deleteRow(i);
+        }
+    }
+      
+    function AddTableRow(idx)
+    {
+        var table = document.getElementById('res-table');
+        
+        var row = table.insertRow(idx+1);
+      
+        row.insertCell(0);
+        row.insertCell(1);
+        row.insertCell(2);
+        row.insertCell(3);
+    }
+
+    function SetTableValues(idx)
+    {
+        var table = document.getElementById('res-table');
+        table.rows[idx+1].cells[1].innerHTML = "State " + res.csvRows[idx]["stateNum"];
+        table.rows[idx+1].cells[2].innerHTML = highlightStr(res.csvRows[idx]["str"], res.csvRows[idx]["invNum"], "blue");
         
         revStr = subReverse(res.csvRows[idx]["str"], res.csvRows[idx]["invNum"]);
 
-        table.rows[1].cells[3].innerHTML = highlightStr(revStr, res.csvRows[idx]["invNum"], "red");
+        table.rows[idx+1].cells[3].innerHTML = highlightStr(revStr, res.csvRows[idx]["invNum"], "red");
 
         StateOn(res.csvRows[idx]["stateNum"]);
     }
@@ -212,7 +235,8 @@
         idx++;
         if(idx < res.csvRows.length)
         {
-            SetTableValues();   
+            AddTableRow(idx);
+            SetTableValues(idx);   
             console.log(res.csvRows[idx]["str"]);
         }
         else

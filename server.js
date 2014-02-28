@@ -22,26 +22,22 @@ app.get('/', function (req, res) {
   res.render('index.html', { /* template locals context */ });
 });
 
-app.get('/d3test', function (req, res) {
-  res.render('d3test.html', { /* template locals context */ });
-});
-
 app.get('/start', function (req, res) {	
 	console.log(req.query.string);
 
 	fs = require('fs')
 	fs.writeFileSync('test_str.txt', req.query.string, 'utf8');
 
-	var execSync = require('exec-sync');
-	execSync('./a.out');
+	/*var execSync = require('exec-sync');
+	execSync('./a.out');*/
 
-	/*var FFI = require("node-ffi");
+	var FFI = require("node-ffi");
 	var libc = new FFI.Library(null, {
 	"system": ["int32", ["string"]]
 	});
 
 	var run = libc.system;
-	run("./a.out < input.txt");*/
+	run("./a.out");
 
 	var data = fs.readFileSync('result.txt', 'utf8');
 	if(data.indexOf("YES") != -1)
@@ -64,30 +60,6 @@ app.get('/start', function (req, res) {
 		jsonObj["result"] = "NO";
 		res.send(jsonObj);
 	}
-});
-
-app.get('/update', function (req, res) {
-
-	for(i=0; i<100000000;i++)
-	{
-	}
-	var FFI = require("node-ffi");
-	var libc = new FFI.Library(null, {
-	"system": ["int32", ["string"]]
-	});
-
-	var run = libc.system;
-	run("./a.out");
-
-	fs = require('fs')
-	fs.readFile('output.txt', 'utf8', function (err,data) {
-	if (err) {
-	return console.log(err);
-	}
-		console.log(data);
-	});
-
-res.send('ok');
 });
 
 app.listen(1337);
