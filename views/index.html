@@ -1,0 +1,475 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcu  t icon" href="../../assets/ico/favicon.ico">
+
+    <title>Theme Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="../../dist/css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="theme.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy this line! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="spin.js"></script>
+
+  <link rel="stylesheet" href="joint.css" />
+  <script src="joint.js"></script>
+  <script src="joint.shapes.fsa.js"></script>
+    
+  <style>
+
+    body {
+      font: 10px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+
+    .bar {
+      fill: steelblue;
+    }
+
+    .x.axis path {
+      display: none;
+    }
+
+    .col-sm-4 {
+      height:auto;
+      width:auto;
+      
+    }
+
+    #center{
+      z-index:1;
+    }
+
+    .link-tool{
+      display: none;
+    }
+    
+    .marker-arrowheads{
+      display: none
+    }
+
+    .automata-process{
+      font-size:200%;
+    }
+    
+    </style>
+
+  <body role="document">
+
+    <!-- Fixed navbar -->
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Software Project</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li class="divider"></li>
+                <li class="dropdown-header">Nav header</li>
+                <li><a href="#">Separated link</a></li>
+                <li><a href="#">One more separated link</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div id ="center" style="position:fixed;top:50%;left:50%"></div>
+    <script>
+    var xmlHttp = null;
+    var spinner;
+    var res = null;
+    var idx = 0;
+
+    function Start()
+    {
+        spinner = new Spinner();
+        spinner.spin(document.getElementById('center'));
+
+        var url = "start?string=" + $(".form-control").val().toUpperCase();
+
+        xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = ResponseStart;
+        xmlHttp.open("GET", url, true);
+        xmlHttp.send(null);
+    }
+
+    function StateOn(num)
+    {
+        for(i=0; i<9; i++)
+        {
+            s[i].attr('circle/fill', 'white');
+        }
+        s[num].attr('circle/fill', 'green');
+    }
+
+    function subReverse(str, invNum)
+    {
+        return str.substr(0, invNum).split('').reverse().join('') + str.substr(invNum);
+    }
+    function highlightStr(str, invNum, color)
+    {
+        var res = "<font color='" + color +"'>";
+        res += str.substr(0, invNum);
+        res += "</font>";
+        res += str.substr(invNum);
+
+        return res;
+    }
+
+    function ResponseStart()
+    {
+        if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) 
+        {
+            if ( xmlHttp.responseText == "Not found" ) 
+            {
+
+            }
+            else
+            {
+                spinner.stop(); 
+
+                res = JSON.parse(xmlHttp.responseText);
+                idx = 0;
+                console.log(res);
+
+                if(res["result"] == "NO")
+                {
+                    alert('Input String is not accepted to Language!');
+                }
+                else
+                {
+                    SetTableValues();
+                }
+            }                    
+        }
+    }
+
+    function SetTableValues()
+    {
+        var table = document.getElementById('res-table');
+        table.rows[1].cells[1].innerHTML = "State " + res.csvRows[idx]["stateNum"];
+        table.rows[1].cells[2].innerHTML = highlightStr(res.csvRows[idx]["str"], res.csvRows[idx]["invNum"], "blue");
+        
+        revStr = subReverse(res.csvRows[idx]["str"], res.csvRows[idx]["invNum"]);
+
+        table.rows[1].cells[3].innerHTML = highlightStr(revStr, res.csvRows[idx]["invNum"], "red");
+
+        StateOn(res.csvRows[idx]["stateNum"]);
+    }
+
+    function NextState()
+    {
+        if(res == null)
+        {
+            alert('Set Input String and Click Start Button!');
+            return;
+        }
+
+        idx++;
+        if(idx < res.csvRows.length)
+        {
+            SetTableValues();   
+            console.log(res.csvRows[idx]["str"]);
+        }
+        else
+        {
+            idx--;
+            alert('Process Finished!');
+        }
+    }
+
+    function GetRequest()
+    {
+        spinner = new Spinner();
+        spinner.spin(document.getElementById('center'));
+        
+        var Url = "update";
+        
+        xmlHttp = new XMLHttpRequest(); 
+        xmlHttp.onreadystatechange = ProcessRequest;
+        xmlHttp.open( "GET", Url, true );
+        xmlHttp.send( null );
+    }
+
+    function ProcessRequest() 
+    {
+        if ( xmlHttp.readyState == 4 && xmlHttp.status == 200 ) 
+        {
+            if ( xmlHttp.responseText == "Not found" ) 
+            {
+
+                console.log("not found");
+            }
+            else
+            {
+                spinner.stop(); 
+                ClearGraph();
+                RenderGraph();
+                console.log("found");
+            }                    
+        }
+    }
+    </script>
+
+    <div class="container theme-showcase" role="main">
+
+      <div class="page-header">
+        <h1>NOI Simulation for Simple Language(Automata)</h1>
+      </div>
+      
+      <div class="panel panel-default">
+        <div class="panel-heading">
+        <h6 class="panel-title">NOI Simulation</h6>
+        </div>
+        <div id="panel-body" class="panel-body"></div>
+        <nav class="navbar navbar-default" role="navigation">
+          <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+              <a class="navbar-brand" href="#">Input String for Non-Overlapping Inversion</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+              <form class="navbar-form navbar-left" role="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" placeholder="Input the string for simulation" size="50">
+                </div>
+                <button onclick="Start(); return false;" type="submit" class="btn btn-default">Start</button>
+                <button onclick="NextState(); return false;" type="submit" class="btn btn-default">Next State</button>
+              </form>
+            </div><!-- /.navbar-collapse -->
+          </div><!-- /.container-fluid -->
+        </nav>
+
+        <div class="panel panel-default automata-process">
+          <!-- Default panel contents -->
+          <div class="panel-heading">Automata Simulation Process</div>
+
+          <!-- Table -->
+          <table class="table" id="res-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Current State</th>
+                <th>Remaining String</th>
+                <th>Inversed String</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>      
+      
+      <script>
+       var graph = new joint.dia.Graph;
+
+       // This is the ellipse that will be used as a constraint for our element dragging.
+
+var ConstraintElementView = joint.dia.ElementView.extend({
+    pointerdown: function(evt, x, y) {
+        
+    },
+    pointermove: function(evt, x, y) {
+        
+    }
+});
+
+var ConstraintLinkView = joint.dia.LinkView.extend({
+    pointerdown: function(evt, x, y) {
+        
+    },
+    pointermove: function(evt, x, y) {
+        
+    }
+});
+
+var paper = new joint.dia.Paper({
+    el: $('#panel-body'),
+    width: 1000,
+    height: 500,
+    gridSize: 1,
+    model: graph,
+    elementView: ConstraintElementView,
+    linkView: ConstraintLinkView
+});
+
+function state(x, y, label) {
+    
+    var cell = new joint.shapes.fsa.State({
+        position: { x: x, y: y },
+        size: { width: 60, height: 60 },
+        attrs: { text : { text: label },
+                  circle: { fill: 'white'} 
+                }
+    });
+    graph.addCell(cell);
+    return cell;
+};
+
+function link(source, target, label, vertices) {
+    
+    var cell = new joint.shapes.fsa.Arrow({
+        source: { id: source.id },
+        target: { id: target.id },
+        labels: [{ position: .5, attrs: { text: { text: label || '', 'font-weight': 'bold', 'font-size': 25 } } }],
+        vertices: vertices || []
+    });
+    graph.addCell(cell);
+    return cell;
+}
+
+var start = new joint.shapes.fsa.StartState({ position: { x: 50, y: 300}});
+graph.addCell(start);
+
+var s = new Array();
+
+s[0] = state(150, 300, 'S0');
+s[1] = state(350, 300, 'S1');
+s[2] = state(250, 400, 'S2');
+s[3] = state(450, 400, 'S3');
+s[4] = state(550, 300, 'S4');
+s[5] = state(450, 200, 'S5');
+s[6] = state(700, 200, 'S6');
+s[7] = new joint.shapes.fsa.EndState({
+  position: {x: 850, y: 100},
+  size: { width: 60, height: 60 },
+  attrs: {
+    '.outer': {
+        r: 60,
+        fill: 'white',
+        stroke: 'black'
+    },
+
+    '.inner': {
+        r: 50,
+        fill: 'white',
+        stroke: 'black'
+    }
+  }
+  
+});
+graph.addCell(s[7]);
+s[8] = new joint.shapes.fsa.EndState({
+  position: {x: 900, y: 300},
+  size: { width: 60, height: 60 },
+  attrs: {
+    '.outer': {
+        r: 60,
+        fill: 'white',
+        stroke: 'black'
+    },
+
+    '.inner': {
+        r: 50,
+        fill: 'white',
+        stroke: 'black'
+    }
+  }
+  
+});
+graph.addCell(s[8]);
+/*var s7 = state(750, 100, 'S7');
+var s8 = state(750, 300, 'S8');*/
+
+
+link(start, s[0], 'start');
+link(s[0], s[1], 'C');
+link(s[0], s[2], 'A');
+link(s[2], s[1], 'C');
+link(s[1], s[3], 'G');
+link(s[3], s[4], 'T');
+link(s[4], s[5], 'C');
+link(s[1], s[4], 'A');
+link(s[5], s[1], 'T');
+link(s[4], s[6], 'A');
+link(s[6], s[7], 'C');
+link(s[6], s[8], 'G');
+
+/*
+var start = new joint.shapes.fsa.StartState({ position: { x: 50, y: 530 } });
+graph.addCell(start);
+
+var code  = state(180, 390, 'code');
+var slash = state(340, 220, 'slash');
+var star  = state(600, 400, 'star');
+var line  = state(190, 100, 'line');
+var block = state(560, 140, 'block');
+
+//block.attrs.circle.fill('blue');
+block.attr('circle/fill', 'blue');
+
+link(start, code,  'start');
+link(code,  slash, '/');
+link(slash, code,  'other', [{x: 270, y: 300}]);
+link(slash, line,  '/');
+link(line,  code,  'new\n line');
+link(slash, block, '*');
+link(block, star,  '*');
+link(star,  block, 'other', [{x: 650, y: 290}]);
+link(star,  code,  '/',     [{x: 490, y: 310}]);
+link(line,  line,  'other', [{x: 115,y: 100}, {x: 250, y: 50}]);
+link(block, block, 'other', [{x: 485,y: 140}, {x: 620, y: 90}]);
+link(code,  code,  'other', [{x: 180,y: 500}, {x: 305, y: 450}]);*/
+      </script>
+        
+    </div> <!-- /container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>-->
+    <script src="../../dist/js/bootstrap.min.js"></script>
+    <script src="../../dist/js/docs.min.js"></script>
+  </body>
+</html>
